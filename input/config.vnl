@@ -1,0 +1,14 @@
+[DEFAULT] = #00ffff
+[KEYWORD] = FALSE
+
+[ALBUM : "MINECRAFT - VOLUME ALPHA"; ARTIST : "The Beach Boys"] = #60f807
+[ALBUM : "MINECRAFT - VOLUME BETA"] = #ff1e00
+[ARTIST : "jack stauber"] = #ffff00
+[ARTIST : "frank steps", "crystal castles", "Molchat Doma", "Djavan"] = #ff00ff
+
+[
+    ARTIST : "tvgirl", "oliver tree", "windows 96";
+    TITLE : "ressonance"
+] = #ff0044
+
+[ARTIST : "Yot Club"] = #0000ff
