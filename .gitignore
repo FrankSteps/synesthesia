@@ -1,2 +1,11 @@
+# Environment variables and local settings
 .env
+settings.json
+
+# Python virtual environment and cache
+.venv/
+__pycache__/
+*.py[cod]
+
+# Editor settings
 .vscode/
