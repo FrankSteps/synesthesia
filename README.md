@@ -1,4 +1,4 @@
-# Synesthesia
+# 🍩💿 Synesthesia
 
 Synesthesia is a music-driven color API that assigns customizable colors to the music you're listening to, making them available for use in external projects and devices. It supports integrations with Strawberry Music Player and YouTube, and can also update your GitHub profile status with the currently playing track. Use it to synchronize colors with music in Arduino projects, hardware interfaces, ambient lighting, and other creative applications.
 
