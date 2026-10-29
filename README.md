@@ -1,88 +1,157 @@
-# Github Beats 
+# Synesthesia
 
-This project updates your **GitHub status** with the title of the **YouTube** video you are watching or listening. **If you listen to music on YouTube, this project is for you!**
-
-
-## Tree
-
-```
-. 
-├── extension           # Browser extension files
-│   ├── content.js      # Script running on webpages
-│   └── manifest.json   # Extension settings
-├── logs                # Server log files
-│   └── server.log
-├── server              # Python server files
-│   ├── server.py
-│   └── start.sh
-├── LICENSE      
-└── README.md       
-
-``` 
-
-
-## Dependences
-- Python3
-- Flask             – Python web server
-- Flask-CORS        – Allows the browser extension to communicate with the server
-- requests          – For sending HTTP requests to the GitHub API
-- python-dotenv     – Loads environment variables from .env
-
-
+Synesthesia is a music-driven color API that assigns customizable colors to the music you're listening to, making them available for use in external projects and devices. It supports integrations with Strawberry Music Player and YouTube, and can also update your GitHub profile status with the currently playing track. Use it to synchronize colors with music in Arduino projects, hardware interfaces, ambient lighting, and other creative applications.
 
 ## Features
 
-- Identify YouTube video tittle
-- Updates your GitHub status with the title or YouTube video
+- **Multiple sources:** Supports Strawberry Music Player and YouTube.
+- **Automatic source selection:** In `auto` mode, the most recently active source takes control.
+- **GitHub status integration:** Updates your GitHub profile status with the current track or video title.
+- **Custom status emojis:** Choose a preset emoji or enter a custom emoji.
+- **Color rules:** Assign colors to albums, artists, track titles, and keywords using `config.vnl`.
+- **Control panel:** Configure the active source, GitHub updates, and status emoji through a local web interface.
+- **Local API:** Exposes the current track information, its URL, and its assigned color.
 
+## Project Structure
 
-## How to use this project
-
+```text
+synesthesia
+├── extension/
+│   ├── content.js
+│   ├── icons/
+│   │   └── github-beats.png
+│   └── manifest.json
+├── input/
+│   ├── config.vnl
+│   ├── docs_input.md
+│   └── example.vnl
+├── logs/
+│   └── server.log
+├── server/
+│   ├── start.sh
+│   └── synesthesia.py
+├── .env_example
+├── .gitignore
+├── LICENSE
+├── README.md
+└── settings.json
 ```
-# Clone this repository
-git clone https://www.github.com/FrankSteps/github-beats
 
+## Requirements
 
-# install the dependences
-pip install flask requests python-dotenv flask-cors
+- Python 3
+- Strawberry Music Player (for Strawberry integration)
+- A compatible browser for the YouTube extension
+- A GitHub personal access token that permits updating your profile status
+- The Python dependencies used by the server:
+  - Flask
+  - Flask-CORS
+  - Requests
+  - python-dotenv
+  - dbus-python
 
+## Installation
 
-# Go to the project folder
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/FrankSteps/github-beats.git
 cd github-beats
+```
 
+### 2. Configure your GitHub token
 
-# Create a .env file and add your GitHub token
-touch .env 
-echo "GITHUB_TOKEN=ghp_..." >> .env
+Create a `.env` file in the project root and configure your GitHub token:
 
+```dotenv
+GITHUB_TOKEN=your_github_token
+```
 
-# Start the server
+Keep your token private. Do not commit your `.env` file.
+
+### 3. Install the dependencies
+
+Activate your Python virtual environment, if you use one, and install the required dependencies.
+
+```bash
+pip install flask flask-cors requests python-dotenv dbus-python
+```
+
+Depending on your Linux distribution, `dbus-python` may require system development packages.
+
+### 4. Start the server
+
+Run the project's startup script:
+
+```bash
 ./server/start.sh
-
-
-# Load the "manifest.json" file in your browser as an extension
-
-# Notes:
-# 1. This project uses port 8080: Ensure that no other program is using the same port
-# 2. Press Ctrl + Z to stop the server
 ```
 
+The server listens on port `8080`.
 
-## Notes
+### 5. Install the browser extension
+
+Load the `extension` directory as an unpacked extension using your browser's extension management page. Enable the extension and open a YouTube video.
+
+### 6. Open the control panel
+
+Visit:
+
+[http://localhost:8080/control](http://localhost:8080/control)
+
+From the control panel, you can select the source, enable or disable GitHub status updates, and customize the status emoji.
+
+## Source Selection
+
+Synesthesia supports three source modes:
+
+| Mode | Behavior |
+| --- | --- |
+| `auto` | The most recently active source takes control. |
+| `strawberry` | Only Strawberry updates the current track. |
+| `youtube` | Only YouTube updates the current track. |
+
+The selected source and other settings are persisted in `settings.json`.
+
+## Color Configuration
+
+Track colors are configured in `input/config.vnl`.
+
+You can define a default color, match albums, artists, and titles, and optionally enable keyword-based matching.
+
+Example:
+
+```ini
+[DEFAULT] = #000000
+
+[KEYWORD] = TRUE
+
+[ALBUM : "Minecraft - Volume Alpha"] = #60F807
+[ARTIST : "Frank Steps"] = #FF00FF
+[TITLE : "Resonance"] = #FF0044
+
+[KEYWORD] {
+    #00FF00 = minecraft | c418 | mice on venus
+    #8A2BE2 = nostalgia | ambient | afterimage
+}
 ```
-# On my Ubuntu machine, I use this project with a virtual environment.
-# If the project does not work on your system, try the following:
 
-cd github-beats
+Colors use the hexadecimal `#RRGGBB` format. Matching is case-insensitive and supports partial matches. Ordinary rules are evaluated in file order; keyword rules are considered afterward when keyword matching is enabled.
 
-python3 -m venv myVenv
-source myVenv/bin/activate
+For the complete syntax and rule behavior, see [`input/docs_input.md`](input/docs_input.md).
 
-./server/start.sh
+## Local API
 
-```
+The server exposes the following endpoints on port `8080`:
 
+| Endpoint | Method | Purpose |
+| --- | --- | --- |
+| `/` | GET | Returns current track metadata and its assigned color. |
+| `/current` | GET | Returns the current title, URL, color, and source. |
+| `/video` | POST | Receives video information from the browser extension. |
+| `/settings` | GET / POST | Reads or updates source, GitHub status, and emoji settings. |
+| `/control` | GET | Serves the control panel. |
 
 ## License
 
-This project is licensed under the [MIT licence](LICENSE)
+This project is licensed under the [MIT License](LICENSE).
