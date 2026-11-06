@@ -1,4 +1,6 @@
-# 🍩💿 Synesthesia
+#
+
+![synesthesia logo](assets/logo/synesthesia-logo-ampliada.png)
 
 Synesthesia is a music-driven color API that assigns customizable colors to the music you're listening to, making them available for use in external projects and devices. It supports integrations with Strawberry Music Player and YouTube, and can also update your GitHub profile status with the currently playing track. Use it to synchronize colors with music in Arduino projects, hardware interfaces, ambient lighting, and other creative applications. [Explore the examples](https://github.com/franksteps/synesthesia-examples)
 
@@ -125,6 +127,8 @@ Load the `extension` directory as an unpacked extension through your browser's e
 Visit [http://localhost:8080/control](http://localhost:8080/control).
 
 From the control panel, you can select the source, enable or disable GitHub status updates, and customize the status emoji. Changes are saved locally and persist across server restarts.
+
+![control panel](assets/screenshots/localhost_8080.png)
 
 ## Source Selection
 
