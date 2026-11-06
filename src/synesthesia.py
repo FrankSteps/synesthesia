@@ -252,7 +252,12 @@ def update_github_status(emoji=None, message=None):
 #
 
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=str(BASE_DIR / "assets"),
+    static_url_path="/assets"
+)
+
 CORS(app)
 
 config = load_config(BASE_DIR / "input" / "config.vnl")
@@ -527,6 +532,7 @@ CONTROL_PAGE = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/x-icon" href="/assets/logo/cdonut.ico?">
 <title>Synesthesia</title>
     <style>
         :root { 
