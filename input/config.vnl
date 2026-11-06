@@ -2,13 +2,13 @@
 [KEYWORD] = FALSE
 
 [ALBUM : "MINECRAFT - VOLUME ALPHA"; ARTIST : "The Beach Boys"] = #60f807
-[ALBUM : "MINECRAFT - VOLUME BETA"] = #ff1e00
+[ALBUM : "MINECRAFT - VOLUME BETA"] = #ff1300
 [ARTIST : "jack stauber"] = #ffff00
-[ARTIST : "frank steps", "crystal castles", "Molchat Doma", "Djavan"] = #ff00ff
+[ARTIST : "frank steps", "crystal castles", "Molchat Doma", "moonvampire"] = #ff00ff
 
 [
-    ARTIST : "tvgirl", "oliver tree", "windows 96";
+    ARTIST : "tv girl", "oliver tree", "windows 96", "djavan";
     TITLE : "ressonance"
-] = #ff0044
+] = #ff0090
 
 [ARTIST : "Yot Club"] = #0000ff
