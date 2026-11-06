@@ -9,16 +9,17 @@
 #   - Optionally mirrors the track on the GitHub user status
 #   - Source, GitHub updates and status emoji are controlled from /control
 
+# libraries
 import json
 import logging
 import os
 import re
 import threading
 import time
-from pathlib import Path
-
 import dbus
 import requests
+
+from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -136,6 +137,7 @@ def load_config(file_path):
         content,
         flags=re.DOTALL | re.IGNORECASE
     )
+    
     rules_content = re.sub(
         r"(?im)^\s*\[(?:DEFAULT|KEYWORD)\]\s*=\s*[^\n]*$",
         "",
@@ -147,6 +149,7 @@ def load_config(file_path):
         r"\[((?:[^\]]|\n)*?)\]\s*=\s*(#[0-9A-Fa-f]{6})",
         re.DOTALL
     )
+
     condition_pattern = re.compile(
         r'(ALBUM|ARTIST|TITLE)\s*:\s*([^;]+)',
         re.IGNORECASE
@@ -218,11 +221,11 @@ mutation($emoji: String, $message: String) {
 """
 
 
-def update_github_status(emoji, message):
+def update_github_status(emoji=None, message=None):
     payload = {
         "query": STATUS_MUTATION,
         # GitHub limits the status message to 80 characters
-        "variables": {"emoji": emoji, "message": message[:80]}
+        "variables": {"emoji": emoji, "message": message[:80] if message else None}
     }
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
 
@@ -451,6 +454,14 @@ def get_current():
         }), 200
 
 
+# Clear the current github status 
+@app.post("/clear")
+def clear_status():
+    update_github_status()
+    return jsonify({"status": "cleared"}), 200
+
+
+
 #
 # SETTINGS
 #
@@ -509,89 +520,139 @@ def settings_endpoint():
 #
 
 
-CONTROL_PAGE = """<!doctype html>
+CONTROL_PAGE = """
+
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Synesthesia</title>
-<style>
-  :root { color-scheme: light dark; }
-  body { font-family: sans-serif; max-width: 480px; margin: 8vh auto; padding: 0 1rem; text-align: center; }
-  h3 { margin: 2rem 0 .6rem; }
-  button { font-size: 1.1rem; padding: .6rem 1.2rem; margin: .3rem; cursor: pointer; }
-  button.active { background: #1db954; color: #fff; border: none; }
-  input { font-size: 1.1rem; padding: .5rem; width: 9rem; text-align: center; }
-  #error { color: #d33; min-height: 1.4rem; margin-top: 1rem; }
-</style>
+    <style>
+        :root { 
+            color-scheme: light dark; 
+        }
+    
+        body { 
+            font-family: sans-serif; 
+            max-width: 480px; 
+            margin: 8vh auto; 
+            padding: 0 1rem; 
+            text-align: center; 
+        }
+    
+    
+        h3 { 
+            margin: 2rem 0 .6rem; 
+        }
+    
+        button { 
+            font-size: 1.1rem; 
+            padding: .6rem 1.2rem; 
+            margin: .3rem; 
+            cursor: pointer;
+        }
+
+        button.active { 
+            background: #ff0044; 
+            color: #ff0044 
+            border: none; 
+        }
+
+        input { 
+            font-size: 1.1rem; 
+            padding: .5rem; 
+            width: 9rem; 
+            text-align: center; 
+        }
+
+        #error { 
+            color: #d33; 
+            min-height: 
+            1.4rem; 
+            margin-top: 1rem; 
+        }
+    </style>
 </head>
 <body>
-  <h3>Source</h3>
-  <div id="sources"></div>
+    <h3>Source</h3>
+    <div id="sources"></div>
 
-  <h3>GitHub status</h3>
-  <div id="github"></div>
+    <h3>GitHub status</h3>
+    <div id="github"></div>
+    <button id="clear">clear status</button>
 
-  <h3>Emoji</h3>
-  <div id="emojis"></div>
-  <input id="custom" placeholder=":fire: or 🔥">
-  <button id="apply">Apply</button>
-  <p id="current"></p>
-
-  <div id="error"></div>
+    <h3>Emoji</h3>
+    <div id="emojis"></div>
+    <input id="custom" placeholder=":fire: or 🔥">
+    <button id="apply">Apply</button>
+    <p id="current"></p>
+    <div id="error"></div>
 
 <script>
-  const SOURCES = ["auto", "strawberry", "youtube"];
-  const PRESETS = [
-    ["🎵", ":musical_note:"], ["🎧", ":headphones:"], ["🎶", ":notes:"],
-    ["📺", ":tv:"], ["🔥", ":fire:"], ["❤️", ":heart:"]
-  ];
+    const SOURCES = ["auto", "strawberry", "youtube"];
+    const PRESETS = [
+      ["🎵", ":musical_note:"], ["🎧", ":headphones:"], ["🎶", ":notes:"],
+      ["📺", ":tv:"], ["🔥", ":fire:"], ["❤️", ":heart:"]
+    ];
 
-  // Send changes to the server and show its error message, if any
-  async function update(changes) {
-    const res = await fetch("/settings", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(changes)
-    });
-    const data = await res.json();
-    document.getElementById("error").textContent = res.ok ? "" : data.error;
+    // Send changes to the server and show its error message, if any
+    async function update(changes) {
+        const res = await fetch("/settings", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(changes)
+        });
+      const data = await res.json();
+      document.getElementById("error").textContent = res.ok ? "" : data.error;
+      load();
+    }
+
+    function makeButton(label, active, onClick) {
+        const button = document.createElement("button");
+        button.textContent = label;
+        
+        if (active){
+            button.className = "active";
+        }
+
+        button.onclick = onClick;
+        return button;
+    }
+
+    async function load() {
+        const s = await (await fetch("/settings")).json();
+        
+        document.getElementById("sources").replaceChildren(...SOURCES.map(name =>
+            makeButton(name, name === s.source, () => update({source: name}))));
+        
+        document.getElementById("github").replaceChildren(
+            makeButton(s.github_enabled ? "Updates: ON" : "Updates: OFF", s.github_enabled,
+                () => update({github_enabled: !s.github_enabled})));
+        
+        document.getElementById("emojis").replaceChildren(...PRESETS.map(([label, code]) =>
+            makeButton(label, code === s.emoji, () => update({emoji: code}))));
+        
+        document.getElementById("current").textContent = "Current emoji: " + s.emoji;
+    }
+
+    document.getElementById("apply").onclick = () => {
+        const value = document.getElementById("custom").value.trim();
+        
+        if (value){
+            update({emoji: value});
+        }
+    };
+
+    document.getElementById("clear").onclick = async () => {
+        await fetch("/clear", { method: "POST" });
+    };
+
     load();
-  }
-
-  function makeButton(label, active, onClick) {
-    const button = document.createElement("button");
-    button.textContent = label;
-    if (active) button.className = "active";
-    button.onclick = onClick;
-    return button;
-  }
-
-  async function load() {
-    const s = await (await fetch("/settings")).json();
-
-    document.getElementById("sources").replaceChildren(...SOURCES.map(name =>
-      makeButton(name, name === s.source, () => update({source: name}))));
-
-    document.getElementById("github").replaceChildren(
-      makeButton(s.github_enabled ? "Updates: ON" : "Updates: OFF", s.github_enabled,
-        () => update({github_enabled: !s.github_enabled})));
-
-    document.getElementById("emojis").replaceChildren(...PRESETS.map(([label, code]) =>
-      makeButton(label, code === s.emoji, () => update({emoji: code}))));
-
-    document.getElementById("current").textContent = "Current emoji: " + s.emoji;
-  }
-
-  document.getElementById("apply").onclick = () => {
-    const value = document.getElementById("custom").value.trim();
-    if (value) update({emoji: value});
-  };
-
-  load();
 </script>
 </body>
-</html>"""
+</html>
+"""
 
 
 @app.get("/control")
@@ -621,6 +682,7 @@ if __name__ == "__main__":
     threading.Thread(target=strawberry_watcher, daemon=True).start()
 
     app.run(
+        host="0.0.0.0",
         port=8080,
         debug=False,
         request_handler=QuietBadRequestHandler
